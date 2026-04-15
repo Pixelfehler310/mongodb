@@ -46,6 +46,14 @@ export const useAnalyticsQuery = () => {
   });
 };
 
+export const useHealthQuery = () => {
+  return useQuery({
+    queryKey: ["health"],
+    queryFn: () => apiClient.getHealth(),
+    refetchInterval: 10 * 1000
+  });
+};
+
 export const useAddReviewMutation = (productId: string) => {
   const queryClient = useQueryClient();
 

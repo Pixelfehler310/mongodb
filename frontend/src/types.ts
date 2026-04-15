@@ -67,3 +67,11 @@ export type ReviewPayload = {
   message: string;
   product: Product;
 };
+
+export type HealthPayload = {
+  status: "ok" | "degraded";
+  dependencies: {
+    mongodb: "connected" | "disconnected";
+  };
+  timestamp: string;
+};

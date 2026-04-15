@@ -339,6 +339,53 @@ button:hover {
   border-bottom: 1px solid var(--border);
 }
 
+.health-layout {
+  display: grid;
+  gap: 14px;
+}
+
+.status-pill {
+  width: fit-content;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.status-pill.healthy {
+  color: #0c5f36;
+  background: #d8fbe8;
+  border: 1px solid #8bd8b0;
+}
+
+.status-pill.unhealthy {
+  color: #84201a;
+  background: #fde3e1;
+  border: 1px solid #f0a19b;
+}
+
+.health-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.health-grid article {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.health-grid h3 {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.health-grid p {
+  margin: 8px 0 0;
+  font-weight: 700;
+}
+
 .error {
   color: var(--error);
 }
@@ -362,6 +409,10 @@ button:hover {
 
 @media (max-width: 620px) {
   .stats-row {
+    grid-template-columns: 1fr;
+  }
+
+  .health-grid {
     grid-template-columns: 1fr;
   }
 

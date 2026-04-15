@@ -1,6 +1,7 @@
 import { NavLink, Route, Routes } from "react-router-dom";
 import { AnalyticsPage } from "./pages/AnalyticsPage";
 import { CatalogPage } from "./pages/CatalogPage";
+import { HealthPage } from "./pages/HealthPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { ProductDetailPage } from "./pages/ProductDetailPage";
 
@@ -15,6 +16,7 @@ export const App = () => {
         <nav>
           <NavLink to="/" className={({ isActive }) => (isActive ? "active" : "")}>Katalog</NavLink>
           <NavLink to="/analytics" className={({ isActive }) => (isActive ? "active" : "")}>Analytics</NavLink>
+          <NavLink to="/health" className={({ isActive }) => (isActive ? "active" : "")}>DB Health</NavLink>
         </nav>
       </header>
 
@@ -23,6 +25,7 @@ export const App = () => {
           <Route path="/" element={<CatalogPage />} />
           <Route path="/product/:id" element={<ProductDetailPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
+          <Route path="/health" element={<HealthPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>

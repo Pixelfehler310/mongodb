@@ -1,6 +1,7 @@
 import type {
   AnalyticsPayload,
   CategoriesPayload,
+  HealthPayload,
   ProductListPayload,
   Product,
   ReviewPayload
@@ -76,6 +77,8 @@ export const apiClient = {
   getCategories: () => request<CategoriesPayload>("/categories"),
 
   getAnalytics: () => request<AnalyticsPayload>("/analytics"),
+
+  getHealth: () => request<HealthPayload>("/health"),
 
   seedData: (count = 120) =>
     request<{ success: boolean; inserted_count: number; cleared: boolean }>("/seed", {
