@@ -1,0 +1,53 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: mongodb-showcase-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand({ ping: 1 })"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 10s
+
+  backend:
+    build:
+      context: ./backend
+    container_name: mongodb-showcase-backend-local
+    ports:
+      - "3000:3000"
+    environment:
+      MONGODB_URI: ${MONGODB_URI:-mongodb://mongo:27017/mongo_showcase}
+      MONGODB_DB_NAME: ${MONGODB_DB_NAME:-mongo_showcase}
+      PORT: ${PORT:-3000}
+      NODE_ENV: ${NODE_ENV:-development}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+      SEED_ON_START: ${SEED_ON_START:-false}
+    depends_on:
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/v1/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:3000/api/v1}
+    container_name: mongodb-showcase-frontend-local
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "4173:4173"
+
+volumes:
+  mongo_data:

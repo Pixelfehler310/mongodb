@@ -13,13 +13,19 @@ export const connectToMongo = async (
     return;
   }
 
+  const usesSrvProtocol = uri.startsWith("mongodb+srv://");
+
   const mongoClient = new MongoClient(uri, {
     maxPoolSize: 100,
-    serverApi: {
-      version: ServerApiVersion.v1,
-      strict: false,
-      deprecationErrors: true
-    }
+    ...(usesSrvProtocol
+      ? {
+          serverApi: {
+            version: ServerApiVersion.v1,
+            strict: false,
+            deprecationErrors: true
+          }
+        }
+      : {})
   });
 
   await mongoClient.connect();
@@ -29,7 +35,7 @@ export const connectToMongo = async (
   client = mongoClient;
   db = database;
 
-  logger.info({ dbName }, "Connected to MongoDB Atlas");
+  logger.info({ dbName }, "Connected to MongoDB");
 };
 
 export const getDb = (): Db => {

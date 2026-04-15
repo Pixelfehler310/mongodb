@@ -134,3 +134,55 @@ docker compose up --build
 - [ ] `http://localhost:4173` ist erreichbar
 
 Wenn diese Liste durch ist, ist dein lokales Demo-Setup voll einsatzbereit.
+
+---
+
+## 9) Alternative ohne Atlas: lokaler MongoDB-Container
+
+Falls du Atlas erstmal umgehen willst, gibt es jetzt eine zweite Compose-Datei mit eigener MongoDB-Instanz.
+
+### 9.1 Lokale Env-Datei anlegen
+
+Im Projekt-Root:
+
+```powershell
+Copy-Item .env.local.example .env.local
+```
+
+Die Standardwerte sind bereits fuer den lokalen Docker-Stack geeignet.
+
+### 9.2 Lokalen Stack starten
+
+```powershell
+docker compose --env-file .env.local -f docker-compose.local.yml up --build
+```
+
+Dieser Stack startet drei Container:
+- `mongo` (lokale Datenbank)
+- `backend` (wartet auf Mongo-Healthcheck)
+- `frontend` (wartet auf Backend-Healthcheck)
+
+### 9.3 Checks nach dem Start
+
+1. Backend Healthcheck
+- `http://localhost:3000/api/v1/health`
+
+2. Frontend
+- `http://localhost:4173`
+
+3. Optional Seed triggern
+- `POST http://localhost:3000/api/v1/seed`
+
+### 9.4 Daten vollstaendig zuruecksetzen (lokal)
+
+```powershell
+docker compose --env-file .env.local -f docker-compose.local.yml down -v
+```
+
+Danach beim naechsten `up` ist die lokale MongoDB wieder leer.
+
+### 9.5 Unterschiede zu Atlas-Modus
+
+- Kein Atlas Network Access / keine IP-Freigabe notwendig
+- Kein Atlas DB User Setup notwendig
+- Persistenz laeuft ueber Docker Volume statt Atlas-Cluster
