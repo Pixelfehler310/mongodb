@@ -1,6 +1,12 @@
-import { ObjectId, type Document, type Sort } from "mongodb";
+import {
+  MongoServerError,
+  ObjectId,
+  type Document,
+  type Sort
+} from "mongodb";
 import { getDb } from "../db/mongo.js";
 import type {
+  ProductAttributeValue,
   ProductDoc,
   ProductListResponse,
   ProductResponse,
@@ -228,6 +234,55 @@ export const listProducts = async (
       query_filters: options.appliedFilters
     }
   };
+};
+
+export const createProduct = async (input: {
+  sku: string;
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  stock: number;
+  attributes: Record<string, ProductAttributeValue>;
+  tags: string[];
+}): Promise<ProductResponse> => {
+  const now = new Date();
+  const doc: Omit<ProductDoc, "_id"> = {
+    sku: input.sku,
+    name: input.name,
+    description: input.description,
+    price: input.price,
+    category: input.category,
+    stock: input.stock,
+    attributes: input.attributes,
+    reviews: [],
+    tags: input.tags,
+    created_at: now,
+    updated_at: now
+  };
+
+  let insertedId: ObjectId;
+  try {
+    const insertResult = await getDb().collection<Omit<ProductDoc, "_id">>("products").insertOne(doc);
+    insertedId = insertResult.insertedId;
+  } catch (error) {
+    if (
+      error instanceof MongoServerError &&
+      error.code === 11000 &&
+      String(error.message).includes("sku")
+    ) {
+      throw new HttpError(409, "SKU_ALREADY_EXISTS", "Product with this SKU already exists");
+    }
+
+    throw error;
+  }
+
+  const created = await productsCollection().findOne({ _id: insertedId });
+  if (!created) {
+    throw new HttpError(500, "PRODUCT_CREATE_FAILED", "Product could not be loaded after creation");
+  }
+
+  return serializeProduct(created);
 };
 
 export const getProductById = async (id: string): Promise<ProductResponse> => {

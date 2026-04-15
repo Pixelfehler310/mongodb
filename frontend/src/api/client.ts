@@ -1,6 +1,8 @@
 import type {
   AnalyticsPayload,
   CategoriesPayload,
+  CreateProductInput,
+  CreateProductPayload,
   HealthPayload,
   ProductListPayload,
   Product,
@@ -70,6 +72,12 @@ export const apiClient = {
 
   addReview: (id: string, body: { user: string; rating: number; comment: string }) =>
     request<ReviewPayload>(`/products/${id}/reviews`, {
+      method: "POST",
+      body: JSON.stringify(body)
+    }),
+
+  createProduct: (body: CreateProductInput) =>
+    request<CreateProductPayload>("/products", {
       method: "POST",
       body: JSON.stringify(body)
     }),

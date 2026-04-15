@@ -1,6 +1,11 @@
 import { Router } from "express";
-import { addProductReview, getProductById, listProducts } from "../services/products.js";
-import { reviewInputSchema } from "../validation/schemas.js";
+import {
+  addProductReview,
+  createProduct,
+  getProductById,
+  listProducts
+} from "../services/products.js";
+import { createProductInputSchema, reviewInputSchema } from "../validation/schemas.js";
 
 export const createProductsRouter = (): Router => {
   const router = Router();
@@ -18,6 +23,21 @@ export const createProductsRouter = (): Router => {
     try {
       const product = await getProductById(req.params.id);
       res.json(product);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/products", async (req, res, next) => {
+    try {
+      const payload = createProductInputSchema.parse(req.body);
+      const product = await createProduct(payload);
+
+      res.status(201).json({
+        success: true,
+        message: "Product created",
+        product
+      });
     } catch (error) {
       next(error);
     }

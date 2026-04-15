@@ -194,6 +194,29 @@ button:hover {
   width: 130px;
 }
 
+.catalog-controls {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+}
+
+.admin-toggle {
+  width: auto;
+  margin: 0;
+  padding-bottom: 11px;
+}
+
+.primary-action {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #083a20;
+  font-weight: 700;
+}
+
+.primary-action:hover {
+  border-color: var(--accent-strong);
+}
+
 .product-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
@@ -245,6 +268,81 @@ button:hover {
 .pagination button {
   width: auto;
   min-width: 110px;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 28, 18, 0.45);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  z-index: 1000;
+}
+
+.modal-card {
+  width: min(860px, 100%);
+  max-height: 92vh;
+  overflow: auto;
+}
+
+.modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.modal-head h3 {
+  margin: 0;
+}
+
+.modal-head button {
+  width: auto;
+}
+
+.create-product-form {
+  display: grid;
+  gap: 12px;
+}
+
+.form-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.attribute-editor {
+  padding: 12px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+}
+
+.attribute-editor h4 {
+  margin: 0 0 8px;
+}
+
+.attribute-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 8px;
+}
+
+.attribute-row button {
+  width: auto;
+  min-width: 132px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.modal-actions button {
+  width: auto;
+  min-width: 130px;
 }
 
 .detail-layout {
@@ -404,6 +502,16 @@ button:hover {
   .app-header {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .catalog-controls {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .form-two-col,
+  .attribute-row {
+    grid-template-columns: 1fr;
   }
 }
 

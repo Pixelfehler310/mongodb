@@ -68,6 +68,23 @@ export type ReviewPayload = {
   product: Product;
 };
 
+export type CreateProductInput = {
+  sku: string;
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  stock: number;
+  attributes: Record<string, string | number | boolean>;
+  tags: string[];
+};
+
+export type CreateProductPayload = {
+  success: boolean;
+  message: string;
+  product: Product;
+};
+
 export type HealthPayload = {
   status: "ok" | "degraded";
   dependencies: {

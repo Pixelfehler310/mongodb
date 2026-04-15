@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "../api/client";
 import { useFilterStore } from "../store/filters";
+import type { CreateProductInput } from "../types";
 
 export const useProductsQuery = () => {
   const filters = useFilterStore();
@@ -13,7 +14,7 @@ export const useProductsQuery = () => {
         search: filters.search || undefined,
         price_gte: filters.priceMin ? Number(filters.priceMin) : undefined,
         price_lte: filters.priceMax ? Number(filters.priceMax) : undefined,
-        in_stock: filters.inStock,
+        in_stock: filters.inStock ? true : undefined,
         sort: filters.sort,
         offset: filters.offset,
         limit: filters.limit,
@@ -72,6 +73,19 @@ export const useSeedMutation = () => {
 
   return useMutation({
     mutationFn: (count?: number) => apiClient.seedData(count ?? 120),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["products"] });
+      await queryClient.invalidateQueries({ queryKey: ["categories"] });
+      await queryClient.invalidateQueries({ queryKey: ["analytics"] });
+    }
+  });
+};
+
+export const useCreateProductMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (body: CreateProductInput) => apiClient.createProduct(body),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["products"] });
       await queryClient.invalidateQueries({ queryKey: ["categories"] });
