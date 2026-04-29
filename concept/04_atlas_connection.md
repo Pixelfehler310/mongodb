@@ -1,6 +1,6 @@
-# 4. MongoDB Atlas Anbindung (Cloud API & Datenbank)
+# 4. MongoDB Atlas als Betriebsoption und Ausblick
 
-Da wir die Datenbank nicht lokal betreiben, sondern **MongoDB Atlas** nutzen, ist die korrekte Anbindung des Middle Layers (Node.js Backend) an die Cloud ein wichtiger zentraler Bestandteil der Architektur.
+MongoDB Atlas ist in der ueberarbeiteten Architektur **nicht** mehr das zentrale Vergleichsobjekt. Der Kernvergleich findet lokal im Docker-Testlabor zwischen PostgreSQL und MongoDB statt. Atlas bleibt dennoch relevant, weil sich damit zeigen laesst, dass der dokumentenorientierte Ansatz spaeter ohne grossen eigenen Betriebsaufwand in eine produktionsnahe Managed-Umgebung ueberfuehrt werden kann.
 
 ## Architektur der Anbindung
 
@@ -18,5 +18,7 @@ Wir verwenden das offizielle npm-Paket `mongodb` (ohne Abstraktionen wie Mongoos
 * **Database User:** Wir legen in Atlas einen speziellen Benutzer an, der nur Lese- und Schreibrechte (`readWrite`) für unsere spezifische Projekt-Datenbank hat, aber keine Admin-Rechte über den ganzen Cluster.
 * **Network Access (IP Allowlisting):** Da das Backend lokal in Docker läuft, muss die aktuelle öffentliche IP-Adresse deines lokalen Rechners im MongoDB Atlas Dashboard unter "Network Access" freigeschaltet (allowlisted) sein. (Alternativ: `0.0.0.0/0` für Testzwecke, was den Zugriff von überall erlaubt).
 
-### 4. Resilienz (Fehlertoleranz)
-* **Retryable Writes / Reads:** (`retryWrites=true`) Falls in der Cloud kurzzeitig ein Netzwerkproblem auftritt, versucht der Treiber automatisch im Hintergrund, die Abfrage erneut zu senden, bevor ein Fehler an das Frontend geworfen wird.
+### 4. Rolle im Gesamtkonzept
+* **Nicht Teil des Benchmarks:** Atlas-Latenzen werden nicht mit lokaler Datenbank-Performance vermischt, damit die Messung nicht hauptsaechlich die Internetverbindung bewertet.
+* **Praxisnachweis:** Die Atlas-Anbindung zeigt, dass das MongoDB-Datenmodell nicht nur lokal funktioniert, sondern auch in einer produktiven Managed-Umgebung sinnvoll betrieben werden kann.
+* **Argument fuer den Ausblick:** Im Fazit kann Atlas als Beispiel fuer schnelle Bereitstellung, Backup-Management und horizontale Skalierung aufgegriffen werden.
