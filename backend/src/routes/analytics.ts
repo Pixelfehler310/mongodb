@@ -1,12 +1,14 @@
 import { Router } from "express";
-import { getAnalytics } from "../services/products.js";
+import { parseDatabaseMode } from "../db/database-mode.js";
+import { getAnalytics } from "../services/products-dual.js";
 
 export const createAnalyticsRouter = (): Router => {
   const router = Router();
 
-  router.get("/analytics", async (_req, res, next) => {
+  router.get("/analytics", async (req, res, next) => {
     try {
-      const analytics = await getAnalytics();
+      const dbMode = parseDatabaseMode(req.query.db);
+      const analytics = await getAnalytics(dbMode);
       res.json(analytics);
     } catch (error) {
       next(error);

@@ -1,17 +1,18 @@
-# MongoDB Showcase (Uni Projekt)
+# MongoDB vs. PostgreSQL Showcase (Uni Projekt)
 
-Dieses Projekt demonstriert die Vorteile von MongoDB als dokumentenorientierte NoSQL-Datenbank:
+Dieses Projekt vergleicht MongoDB als dokumentenorientierte NoSQL-Datenbank mit PostgreSQL als relationaler Referenz:
 
 - Flexibles Schema in einer `products` Collection
 - Embedded Reviews ohne JOINs
 - Aggregation Pipeline fuer Analytics
-- Lokaler Betrieb mit Docker, wahlweise über Mongo DB Cloud Atlas oder lokaler MongoDB-Container
+- normalisierte PostgreSQL-Tabellen fuer Produkte, Attribute, Tags und Reviews
+- Lokaler Betrieb mit Docker, wahlweise ueber MongoDB Atlas oder lokaler MongoDB-Container
 
 ## Komponenten
 
-- Backend: Express + TypeScript + nativer MongoDB Node.js Driver
+- Backend: Express + TypeScript + nativer MongoDB Node.js Driver + PostgreSQL `pg` Pool
 - Frontend: React + Vite + TypeScript + React Query + Zustand
-- Infrastruktur: Docker Compose (lokal), MongoDB Atlas (Cloud) oder lokaler MongoDB-Container
+- Infrastruktur: Docker Compose (lokal), MongoDB Atlas (Cloud), lokaler MongoDB-Container und lokaler PostgreSQL-Container
 
 ## API (v1)
 
@@ -23,14 +24,16 @@ Dieses Projekt demonstriert die Vorteile von MongoDB als dokumentenorientierte N
 - `GET /api/v1/analytics`
 - `POST /api/v1/seed`
 
+Die fachlichen Endpunkte akzeptieren `?db=mongo` oder `?db=postgres`. Der Seed-Endpunkt akzeptiert zusaetzlich `?db=both`, damit beide Datenbanken denselben deterministischen Datensatz erhalten.
+
 ## Docker-Umgebungen im Projekt
 
 Es gibt jetzt zwei klar getrennte Docker-Setups:
 
 - Atlas-Setup (Cloud DB): `docker-compose.yml`
-- Lokales Setup (eigener MongoDB-Container): `docker-compose.local.yml`
+- Lokales Vergleichssetup (MongoDB-Container + PostgreSQL-Container): `docker-compose.local.yml`
 
-Beide Setups starten Backend und Frontend. Der Unterschied ist nur die Datenbankquelle.
+Beide Setups starten Backend, Frontend und PostgreSQL. Das lokale Setup startet zusaetzlich eine lokale MongoDB. Im Frontend kann per Datenbank-Toggle zwischen MongoDB und PostgreSQL gewechselt werden.
 
 ## Voraussetzungen
 
@@ -38,6 +41,7 @@ Beide Setups starten Backend und Frontend. Der Unterschied ist nur die Datenbank
 - Port `3000` (Backend) ist frei
 - Port `4173` (Frontend) ist frei
 - Fuer lokales Mongo optional: Port `27017` ist frei (nur falls Host-Zugriff gewuenscht)
+- Fuer lokales PostgreSQL optional: Port `5432` ist frei (nur falls Host-Zugriff gewuenscht)
 
 ## Umgebungsdateien
 
@@ -105,7 +109,8 @@ docker compose --env-file .env.local -f docker-compose.local.yml up --build
 Was dabei passiert:
 
 - `mongo` startet aus `mongo:7` und speichert Daten in einem Docker Volume (`mongo_data`).
-- `backend` wartet auf den Mongo-Healthcheck.
+- `postgres` startet aus `postgres:16` und speichert Daten in einem Docker Volume (`postgres_data`).
+- `backend` wartet auf Mongo- und PostgreSQL-Healthchecks.
 - `frontend` wartet auf den Backend-Healthcheck.
 
 ### 3) Verifizieren
@@ -120,10 +125,10 @@ Was dabei passiert:
 Per API:
 
 ```bash
-curl -X POST http://localhost:3000/api/v1/seed
+curl -X POST "http://localhost:3000/api/v1/seed?db=both"
 ```
 
-Hinweis: Seed ersetzt bestehende Produktdaten (destruktiv).
+Hinweis: Seed ersetzt bestehende Produktdaten in den gewaehlt(en) Datenbank(en) (destruktiv).
 
 ### 5) Stoppen / Reset
 

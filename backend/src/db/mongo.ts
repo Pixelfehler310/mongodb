@@ -46,6 +46,8 @@ export const getDb = (): Db => {
   return db;
 };
 
+export const isMongoConnected = (): boolean => db !== null;
+
 export const pingMongo = async (): Promise<boolean> => {
   if (!db) {
     return false;

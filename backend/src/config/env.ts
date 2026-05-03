@@ -7,8 +7,9 @@ export type AppConfig = {
   port: number;
   logLevel: string;
   corsOrigin: string;
-  mongodbUri: string;
-  mongodbDbName: string;
+  mongodbUri?: string;
+  mongodbDbName?: string;
+  postgresUri?: string;
   seedOnStart: boolean;
 };
 
@@ -32,9 +33,10 @@ const parseDbNameFromUri = (uri: string): string => {
 
 export const getConfig = (): AppConfig => {
   const mongodbUri = process.env.MONGODB_URI;
+  const postgresUri = process.env.POSTGRES_URI ?? process.env.POSTGRESQL_URI;
 
-  if (!mongodbUri) {
-    throw new Error("Missing required env variable MONGODB_URI");
+  if (!mongodbUri && !postgresUri) {
+    throw new Error("Missing database connection. Set MONGODB_URI, POSTGRES_URI, or both.");
   }
 
   const portRaw = process.env.PORT ?? "3000";
@@ -50,7 +52,10 @@ export const getConfig = (): AppConfig => {
     logLevel: process.env.LOG_LEVEL ?? "info",
     corsOrigin: process.env.CORS_ORIGIN ?? "*",
     mongodbUri,
-    mongodbDbName: process.env.MONGODB_DB_NAME ?? parseDbNameFromUri(mongodbUri),
+    mongodbDbName: mongodbUri
+      ? process.env.MONGODB_DB_NAME ?? parseDbNameFromUri(mongodbUri)
+      : undefined,
+    postgresUri,
     seedOnStart: toBoolean(process.env.SEED_ON_START, false)
   };
 };

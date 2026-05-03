@@ -25,13 +25,13 @@ export const HealthPage = () => {
   }
 
   const payload = healthQuery.data;
-  const isHealthy = payload.status === "ok" && payload.dependencies.mongodb === "connected";
+  const isHealthy = payload.status === "ok";
 
   return (
     <section className="card health-layout">
       <h2>DB Health</h2>
       <p>
-        Live-Check fuer <strong>Backend + MongoDB Atlas</strong> (Auto-Refresh alle 10 Sekunden).
+        Live-Check fuer <strong>Backend + MongoDB + PostgreSQL</strong> (Auto-Refresh alle 10 Sekunden).
       </p>
 
       <div className={isHealthy ? "status-pill healthy" : "status-pill unhealthy"}>
@@ -46,6 +46,10 @@ export const HealthPage = () => {
         <article>
           <h3>MongoDB</h3>
           <p>{payload.dependencies.mongodb}</p>
+        </article>
+        <article>
+          <h3>PostgreSQL</h3>
+          <p>{payload.dependencies.postgresql}</p>
         </article>
         <article>
           <h3>Letzter Check</h3>

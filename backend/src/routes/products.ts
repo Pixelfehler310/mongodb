@@ -4,7 +4,8 @@ import {
   createProduct,
   getProductById,
   listProducts
-} from "../services/products.js";
+} from "../services/products-dual.js";
+import { parseDatabaseMode } from "../db/database-mode.js";
 import { createProductInputSchema, reviewInputSchema } from "../validation/schemas.js";
 
 export const createProductsRouter = (): Router => {
@@ -12,7 +13,8 @@ export const createProductsRouter = (): Router => {
 
   router.get("/products", async (req, res, next) => {
     try {
-      const result = await listProducts(req.query as Record<string, unknown>);
+      const dbMode = parseDatabaseMode(req.query.db);
+      const result = await listProducts(dbMode, req.query as Record<string, unknown>);
       res.json(result);
     } catch (error) {
       next(error);
@@ -21,7 +23,8 @@ export const createProductsRouter = (): Router => {
 
   router.get("/products/:id", async (req, res, next) => {
     try {
-      const product = await getProductById(req.params.id);
+      const dbMode = parseDatabaseMode(req.query.db);
+      const product = await getProductById(dbMode, req.params.id);
       res.json(product);
     } catch (error) {
       next(error);
@@ -30,8 +33,9 @@ export const createProductsRouter = (): Router => {
 
   router.post("/products", async (req, res, next) => {
     try {
+      const dbMode = parseDatabaseMode(req.query.db);
       const payload = createProductInputSchema.parse(req.body);
-      const product = await createProduct(payload);
+      const product = await createProduct(dbMode, payload);
 
       res.status(201).json({
         success: true,
@@ -45,8 +49,9 @@ export const createProductsRouter = (): Router => {
 
   router.post("/products/:id/reviews", async (req, res, next) => {
     try {
+      const dbMode = parseDatabaseMode(req.query.db);
       const review = reviewInputSchema.parse(req.body);
-      const product = await addProductReview(req.params.id, review);
+      const product = await addProductReview(dbMode, req.params.id, review);
       res.status(201).json({
         success: true,
         message: "Review added",

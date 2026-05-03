@@ -89,6 +89,7 @@ export type HealthPayload = {
   status: "ok" | "degraded";
   dependencies: {
     mongodb: "connected" | "disconnected";
+    postgresql: "connected" | "disconnected";
   };
   timestamp: string;
 };

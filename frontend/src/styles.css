@@ -74,6 +74,19 @@ nav a.active {
   border-color: var(--accent);
 }
 
+.header-actions {
+  display: flex;
+  align-items: end;
+  gap: 14px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.db-toggle {
+  width: 180px;
+  margin: 0;
+}
+
 .card {
   background: var(--panel);
   border: 1px solid var(--border);
@@ -463,7 +476,7 @@ button:hover {
 
 .health-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 12px;
 }
 
@@ -502,6 +515,10 @@ button:hover {
   .app-header {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .header-actions {
+    justify-content: flex-start;
   }
 
   .catalog-controls {

@@ -8,10 +8,12 @@ import type {
   Product,
   ReviewPayload
 } from "../types";
+import type { DatabaseMode } from "../store/database";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api/v1";
 
 type ProductFilterInput = {
+  db?: DatabaseMode;
   category?: string;
   search?: string;
   price_gte?: number;
@@ -26,6 +28,7 @@ type ProductFilterInput = {
 const toQueryString = (filters: ProductFilterInput): string => {
   const params = new URLSearchParams();
 
+  if (filters.db) params.set("db", filters.db);
   if (filters.category) params.set("category", filters.category);
   if (filters.search) params.set("search", filters.search);
   if (typeof filters.price_gte === "number") params.set("price_gte", String(filters.price_gte));
@@ -46,6 +49,8 @@ const toQueryString = (filters: ProductFilterInput): string => {
   const query = params.toString();
   return query ? `?${query}` : "";
 };
+
+const dbQuery = (db: DatabaseMode): string => `?db=${db}`;
 
 const request = async <T>(path: string, init?: RequestInit): Promise<T> => {
   const response = await fetch(`${BASE_URL}${path}`, {
@@ -68,28 +73,28 @@ export const apiClient = {
   listProducts: (filters: ProductFilterInput) =>
     request<ProductListPayload>(`/products${toQueryString(filters)}`),
 
-  getProduct: (id: string) => request<Product>(`/products/${id}`),
+  getProduct: (id: string, db: DatabaseMode) => request<Product>(`/products/${id}${dbQuery(db)}`),
 
-  addReview: (id: string, body: { user: string; rating: number; comment: string }) =>
-    request<ReviewPayload>(`/products/${id}/reviews`, {
+  addReview: (id: string, db: DatabaseMode, body: { user: string; rating: number; comment: string }) =>
+    request<ReviewPayload>(`/products/${id}/reviews${dbQuery(db)}`, {
       method: "POST",
       body: JSON.stringify(body)
     }),
 
-  createProduct: (body: CreateProductInput) =>
-    request<CreateProductPayload>("/products", {
+  createProduct: (db: DatabaseMode, body: CreateProductInput) =>
+    request<CreateProductPayload>(`/products${dbQuery(db)}`, {
       method: "POST",
       body: JSON.stringify(body)
     }),
 
-  getCategories: () => request<CategoriesPayload>("/categories"),
+  getCategories: (db: DatabaseMode) => request<CategoriesPayload>(`/categories${dbQuery(db)}`),
 
-  getAnalytics: () => request<AnalyticsPayload>("/analytics"),
+  getAnalytics: (db: DatabaseMode) => request<AnalyticsPayload>(`/analytics${dbQuery(db)}`),
 
   getHealth: () => request<HealthPayload>("/health"),
 
-  seedData: (count = 120) =>
-    request<{ success: boolean; inserted_count: number; cleared: boolean }>("/seed", {
+  seedData: (count = 120, db: DatabaseMode | "both" = "both") =>
+    request<{ success: boolean; inserted_count: number; cleared: boolean }>(`/seed?db=${db}`, {
       method: "POST",
       body: JSON.stringify({ count, clear_existing: true })
     })

@@ -1,4 +1,22 @@
 services:
+  postgres:
+    image: postgres:16
+    container_name: mongodb-showcase-postgres-atlas-flow
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-showcase}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-showcase_password}
+      POSTGRES_DB: ${POSTGRES_DB:-showcase_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 10s
+
   backend:
     build:
       context: ./backend
@@ -7,6 +25,11 @@ services:
       - "3000:3000"
     env_file:
       - ./.env
+    environment:
+      POSTGRES_URI: ${POSTGRES_URI:-postgresql://showcase:showcase_password@postgres:5432/showcase_db}
+    depends_on:
+      postgres:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/v1/health"]
       interval: 15s
@@ -25,3 +48,6 @@ services:
         condition: service_healthy
     ports:
       - "4173:4173"
+
+volumes:
+  postgres_data:

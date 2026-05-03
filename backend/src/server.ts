@@ -2,20 +2,31 @@ import { createLogger } from "./config/logger.js";
 import { getConfig } from "./config/env.js";
 import { createApp } from "./app.js";
 import { closeMongo, connectToMongo, getDb } from "./db/mongo.js";
-import { seedProducts } from "./db/seed.js";
 import { ensureProductIndexes } from "./db/indexes.js";
+import { closePostgres, connectToPostgres, getPostgresPool } from "./db/postgres.js";
+import { ensurePostgresSchema } from "./db/postgres-schema.js";
+import { seedDatabases } from "./db/seed-dual.js";
 
 const startServer = async (): Promise<void> => {
   const config = getConfig();
   const logger = createLogger(config.logLevel);
 
-  await connectToMongo(config.mongodbUri, config.mongodbDbName, logger);
-  await ensureProductIndexes(getDb(), logger);
+  if (config.mongodbUri && config.mongodbDbName) {
+    await connectToMongo(config.mongodbUri, config.mongodbDbName, logger);
+    await ensureProductIndexes(getDb(), logger);
+  }
+
+  if (config.postgresUri) {
+    await connectToPostgres(config.postgresUri, logger);
+    await ensurePostgresSchema(getPostgresPool(), logger);
+  }
 
   if (config.seedOnStart) {
-    const seedResult = await seedProducts(getDb(), {
+    const seedTarget = config.mongodbUri && config.postgresUri ? "both" : config.postgresUri ? "postgres" : "mongo";
+    const seedResult = await seedDatabases(seedTarget, {
       count: 120,
-      clearExisting: true
+      clearExisting: true,
+      seed: 20260503
     });
 
     logger.info(seedResult, "Seeded demo products on startup");
@@ -30,6 +41,7 @@ const startServer = async (): Promise<void> => {
     logger.info({ signal }, "Shutting down gracefully");
     server.close(async () => {
       await closeMongo();
+      await closePostgres();
       process.exit(0);
     });
   };
