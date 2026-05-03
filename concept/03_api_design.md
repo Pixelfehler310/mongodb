@@ -4,6 +4,10 @@ Um die flexiblen Daten aus MongoDB für das Frontend nutzbar zu machen und die V
 
 Da wir **viele verschiedene Produktkategorien** haben, liegt ein Fokus auf dynamischem Filtern und dem Auslesen dynamischer Metadaten.
 
+## Datenbank-Toggle
+
+Das Frontend kann über den Query-Parameter `?db=mongo` (Standard) oder `?db=postgres` zwischen den beiden Datenbankbackends wechseln. Das Backend leitet die Anfrage transparent an die jeweils passende Datenzugriffsschicht weiter. Dadurch bleibt die API-Oberflaeche fuer beide Datenbanken identisch — der Unterschied liegt ausschliesslich in der Implementierung der Datenzugriffsschicht.
+
 ## Endpunkte
 
 ### 1. Produkte abrufen & filtern

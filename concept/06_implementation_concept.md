@@ -106,7 +106,16 @@ Fuer beide Datenbanken sollen identische oder zumindest fachlich gleichwertige U
 
 Wichtig ist dabei, dass nicht zwei verschiedene Fachlogiken verglichen werden, sondern zwei Datenzugriffsstrategien fuer dieselben Anforderungen.
 
-### 6.2 Vergleich der Developer Experience
+### 6.2 Frontend: Datenbank-Toggle
+Das Frontend zeigt dieselbe Produktkatalog-Oberflaeche fuer beide Datenbanken. Der Nutzer kann ueber einen Toggle-Schalter zwischen MongoDB-Modus und PostgreSQL-Modus wechseln. Technisch wird der Modus als Query-Parameter (`?db=mongo` vs. `?db=postgres`) oder als HTTP-Header an das Backend weitergegeben. Das Backend leitet die Anfrage an die jeweilige Datenzugriffsschicht weiter. Dadurch ist der Unterschied fuer die Demo-Praesentation direkt sichtbar: gleiche UI, gleiche Daten, unterschiedliche Datenbank-Engine.
+
+### 6.3 Seed-Strategie: gleiche Quelldaten fuer beide Datenbanken
+Damit der Vergleich fair bleibt, erzeugt ein einziger Seed-Prozess die Testdaten mit einer deterministischen Faker-Instanz (fester `seed`-Wert):
+* Derselbe Produktdatensatz wird zeitgleich in MongoDB und PostgreSQL eingespielt.
+* Faker-Version und Seed-Wert werden im Code fixiert, damit die Daten jederzeit reproduzierbar sind.
+* Der Seed-Endpunkt `POST /api/v1/seed` nimmt einen optionalen Parameter `?db=both` an, der beide Datenbanken in einem Aufruf befullt.
+
+### 6.4 Vergleich der Developer Experience
 Im Textteil der Ausarbeitung wird der Backend-Code bewusst gegenuebergestellt:
 * SQL-Queries oder ORM-nahe Abbildung in PostgreSQL
 * direkte Dokument-Queries und Updates mit dem MongoDB-Treiber
@@ -115,13 +124,22 @@ Im Textteil der Ausarbeitung wird der Backend-Code bewusst gegenuebergestellt:
 
 ## 7. Messkonzept
 
-### 7.1 Messprinzipien
+### 7.1 Benchmark-Werkzeug: k6
+Als Benchmarking-Tool wird **k6** (https://k6.io) eingesetzt. Begruendung:
+* k6-Skripte werden in JavaScript geschrieben, was gut zum bestehenden Node.js-Stack passt.
+* k6 liefert automatisch p50, p95 und p99 Latenzen sowie Durchsatz (req/s) — Metriken, die sich direkt in der schriftlichen Ausarbeitung tabellarisch darstellen lassen.
+* k6 laesst sich als Container in Docker Compose einbinden, damit Benchmarks reproduzierbar im lokalen Testlabor laufen.
+* Eine separate Warming-Phase (z.B. 30 s) laesst sich im Skript konfigurieren, bevor die eigentliche Messreihe startet.
+
+Jedes Benchmarkszenario wird als eigenes k6-Skript unter `benchmark/` abgelegt (z.B. `benchmark/read_product.js`, `benchmark/bulk_insert.js`).
+
+### 7.2 Messprinzipien
 Damit die Ergebnisse belastbar bleiben, gelten folgende Regeln:
 * identischer Datensatz fuer beide Datenbanken
 * gleiche Hardware und gleiche Docker-Umgebung
-* gleiche Anzahl an Wiederholungen pro Messung
-* getrennte Messung von Warm-up und eigentlicher Messreihe
-* Erfassung von Durchschnitt, Median und Ausreissern
+* gleiche Anzahl an Wiederholungen pro Messung (mindestens 3 Laeufe je Szenario)
+* getrennte Messung von Warm-up (30 s) und eigentlicher Messreihe
+* Erfassung von Durchschnitt, Median (p50) und Ausreissern (p95, p99)
 
 ### 7.2 Kernmetriken
 Die Ausarbeitung konzentriert sich auf wenige, aber aussagekraeftige Metriken.
@@ -177,35 +195,50 @@ Die Ausarbeitung soll keine einseitige Werbeschrift werden, sondern klar benenne
 
 ## 9. Geplanter Arbeitsablauf
 
-### Arbeitspaket 1: Vergleichsbasis herstellen
-* PostgreSQL in das lokale Docker-Setup aufnehmen
-* gemeinsames Seed-Szenario fuer beide Datenbanken definieren
+> **Aktueller Stand (Mai 2026):** Die MongoDB-Seite (Backend, Frontend, Seed, Docker-Setup) ist implementiert. Die PostgreSQL-Seite beginnt mit Arbeitspaket 1.
+
+### Arbeitspaket 1: Vergleichsbasis herstellen *(als naechstes)*
+* PostgreSQL-Container in `docker-compose.yml` aufnehmen
+* PostgreSQL-Datenbank-Schema (Tabellen, Constraints, Indizes) erstellen
+* Frontend-Toggle (`?db=mongo` / `?db=postgres`) im Backend verankern
+* gemeinsames Seed-Szenario: Faker-Instanz mit festem Seed fuer beide Datenbanken nutzen
 * identische Testdaten und Testfaelle festlegen
 
-### Arbeitspaket 2: Datenmodelle ausarbeiten
-* relationales Schema fuer PostgreSQL modellieren
-* Dokumentstruktur fuer MongoDB finalisieren
+### Arbeitspaket 2: Datenmodelle ausarbeiten *(als naechstes)*
+* relationales Schema fuer PostgreSQL finalisieren und in `concept/02_data_model.md` erganzen
+* Dokumentstruktur fuer MongoDB bestaetigen
 * Aenderungsfall `reactions` fuer beide Varianten vorbereiten
 
 ### Arbeitspaket 3: Backend-Vergleich implementieren
 * gleiche Use Cases fuer beide Datenbanken umsetzen
-* Datenzugriffsschicht fuer PostgreSQL ergaenzen
+* Datenzugriffsschicht fuer PostgreSQL unter `backend/src/db/postgres.ts` ergaenzen
 * MongoDB-Implementierung an der Vergleichslogik ausrichten
 
 ### Arbeitspaket 4: Messungen durchfuehren
-* Lese- und Schreibszenarien automatisieren
-* mehrere Messreihen ausfuehren
-* Ergebnisse tabellarisch dokumentieren
+* k6-Skripte fuer alle Kernmetriken unter `benchmark/` erstellen
+* Warm-up- und Messphase im k6-Skript konfigurieren
+* mindestens 3 Messreihen je Szenario ausfuehren
+* Ergebnisse tabellarisch dokumentieren (p50, p95, p99, req/s)
 
 ### Arbeitspaket 5: Auswertung und Ausblick schreiben
 * technische Ergebnisse interpretieren
 * Developer-Experience-Vergleich formulieren
 * Atlas als produktionsnahen Ausblick einordnen
 
-## 10. Ergebnis fuer die Ausarbeitung
+## 10. Abgabeformat und Liefergegenstände
+Das Projekt hat drei Liefergegenstände:
+
+1. **Schriftliche Ausarbeitung (Bericht):** Wissenschaftlicher Vergleich inkl. Datenmodelle, Queries, Messergebnisse und Interpretation.
+2. **Praesentation (Slides):** Komprimierte Zusammenfassung der wichtigsten Erkenntnisse fuer den Vortrag.
+3. **Live-Demo:** Laufendes Docker-Setup mit Frontend-Toggle (MongoDB / PostgreSQL), Benchmark-Ausfuehrung und sichtbaren Ergebnissen.
+
+Alle drei Formate bauen auf demselben technischen Artefakt (Docker Compose + Frontend + Backend + Benchmarks) auf.
+
+## 11. Ergebnis fuer die Ausarbeitung
 Mit diesem Aufbau bleibt die Arbeit fachlich konsistent:
 * **Hauptthema:** relational vs. dokumentenorientiert
-* **Methodik:** fairer Vergleich im lokalen Docker-Testlabor
+* **Methodik:** fairer Vergleich im lokalen Docker-Testlabor mit k6
+* **Frontend:** Toggle-basierte Demo auf identischer Benutzeroberflaeche
 * **Praxisbezug:** Atlas als spaetere Betriebsoption, nicht als Stoerfaktor im Benchmark
 
 Dadurch wird aus dem bisherigen MongoDB-Showcase ein belastbares Vergleichsprojekt mit klarem wissenschaftlichem Fokus und einer nachvollziehbaren Umsetzungsstrategie.
