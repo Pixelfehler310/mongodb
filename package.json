@@ -1,0 +1,12 @@
+{
+    "name": "mongodb-showcase",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "docker:local:up": "docker compose --env-file .env.local -f docker-compose.local.yml up --build",
+        "docker:local:down": "docker compose --env-file .env.local -f docker-compose.local.yml down",
+        "docker:local:reset": "docker compose --env-file .env.local -f docker-compose.local.yml down -v",
+        "docker:local:logs": "docker compose --env-file .env.local -f docker-compose.local.yml logs -f",
+        "docker:local:config": "docker compose --env-file .env.local -f docker-compose.local.yml config"
+    }
+}

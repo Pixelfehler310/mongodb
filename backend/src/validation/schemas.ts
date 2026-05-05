@@ -1,16 +1,14 @@
 import { z } from "zod";
 
+const databaseModeSchema = z.enum(["mongo", "postgres"]);
+
 export const reviewInputSchema = z.object({
   user: z.string().trim().min(1).max(255),
   rating: z.number().int().min(1).max(5),
-  comment: z.string().trim().min(1).max(2000)
+  comment: z.string().trim().min(1).max(2000),
 });
 
-const productAttributeValueSchema = z.union([
-  z.string().trim().min(1).max(255),
-  z.number().finite(),
-  z.boolean()
-]);
+const productAttributeValueSchema = z.union([z.string().trim().min(1).max(255), z.number().finite(), z.boolean()]);
 
 export const createProductInputSchema = z.object({
   sku: z.string().trim().min(1).max(64),
@@ -20,12 +18,20 @@ export const createProductInputSchema = z.object({
   category: z.string().trim().min(1).max(120),
   stock: z.number().int().min(0),
   attributes: z.record(z.string().trim().min(1).max(120), productAttributeValueSchema).default({}),
-  tags: z.array(z.string().trim().min(1).max(80)).max(40).default([])
+  tags: z.array(z.string().trim().min(1).max(80)).max(40).default([]),
 });
 
 export const seedInputSchema = z
   .object({
     count: z.number().int().min(10).max(10000).optional(),
-    clear_existing: z.boolean().optional()
+    clear_existing: z.boolean().optional(),
   })
   .optional();
+
+export const performanceRunInputSchema = z.object({
+  duration_seconds: z.number().int().min(3).max(20).default(6),
+  concurrency: z.number().int().min(1).max(100).default(20),
+  iterations: z.number().int().min(1).max(3).default(1),
+  db_modes: z.array(databaseModeSchema).min(1).max(2).default(["mongo", "postgres"]),
+  scenario_ids: z.array(z.string().trim().min(1)).min(1).max(8).default([]),
+});

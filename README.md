@@ -130,6 +130,59 @@ curl -X POST "http://localhost:3000/api/v1/seed?db=both"
 
 Hinweis: Seed ersetzt bestehende Produktdaten in den gewaehlt(en) Datenbank(en) (destruktiv).
 
+Fuer groessere Datenmengen nicht den Demo-Endpunkt verwenden. Der API-Seed ist in [backend/src/validation/schemas.ts](backend/src/validation/schemas.ts) auf `10000` Datensaetze begrenzt und ist fuer Showcase-Daten gedacht.
+
+Stattdessen im Backend direkt in Batches seeden:
+
+```bash
+cd backend
+npm run seed:bulk -- --db mongo --total 250000 --batch-size 5000
+```
+
+Oder fuer beide Datenbanken:
+
+```bash
+cd backend
+npm run seed:bulk -- --db both --total 100000 --batch-size 2000
+```
+
+Optionen:
+
+- `--db mongo|postgres|both`
+- `--total <anzahl>` Gesamtmenge der Datensaetze
+- `--batch-size <anzahl>` Groesse pro Insert-Block
+- `--clear-existing true|false` Bestehende Daten vor dem ersten Batch loeschen
+- `--seed <zahl>` Deterministischer Seed fuer reproduzierbare Daten
+
+Empfehlung:
+
+- MongoDB: mit `5000` bis `20000` pro Batch starten
+- PostgreSQL: kleiner starten, z. B. `1000` bis `5000`, weil aktuell pro Produkt mehrere Inserts ausgefuehrt werden
+
+### 4b) Performance testen
+
+Einfacher HTTP-Lasttest fuer vorhandene API-Endpunkte:
+
+```bash
+cd backend
+npm run perf:test -- --url "http://localhost:3000/api/v1/products?db=mongo&limit=20" --concurrency 50 --duration 30
+```
+
+Vergleich PostgreSQL:
+
+```bash
+npm run perf:test -- --url "http://localhost:3000/api/v1/products?db=postgres&limit=20" --concurrency 50 --duration 30
+```
+
+Der Befehl gibt JSON mit `requests_per_second`, `p50`, `p95`, `p99` und Statuscodes aus.
+
+Sinnvolle Testfaelle fuer den Vergleich:
+
+- Produktliste ohne Filter
+- Produktliste mit `category`, `price_*` und `attributes.*`
+- Textsuche mit `search=laptop`
+- `GET /api/v1/analytics?db=mongo` gegen `?db=postgres`
+
 ### 5) Stoppen / Reset
 
 Container stoppen:

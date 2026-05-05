@@ -1,14 +1,9 @@
 import { randomUUID } from "node:crypto";
 import type { Pool, PoolClient } from "pg";
 import type { ProductAttributeValue } from "../types/domain.js";
-import { generateSeedProducts, type SeedOptions } from "./seed.js";
+import { generateSeedProductsRange, type SeedOptions } from "./seed.js";
 
-const insertAttribute = async (
-  client: PoolClient,
-  productId: string,
-  key: string,
-  value: ProductAttributeValue
-): Promise<void> => {
+const insertAttribute = async (client: PoolClient, productId: string, key: string, value: ProductAttributeValue): Promise<void> => {
   const valueType = typeof value;
 
   await client.query(
@@ -18,21 +13,11 @@ const insertAttribute = async (
       )
       VALUES ($1, $2, $3, $4, $5, $6)
     `,
-    [
-      productId,
-      key,
-      valueType,
-      valueType === "string" ? value : null,
-      valueType === "number" ? value : null,
-      valueType === "boolean" ? value : null
-    ]
+    [productId, key, valueType, valueType === "string" ? value : null, valueType === "number" ? value : null, valueType === "boolean" ? value : null],
   );
 };
 
-export const seedPostgresProducts = async (
-  pool: Pool,
-  options: SeedOptions
-): Promise<{ insertedCount: number; cleared: boolean }> => {
+export const seedPostgresProducts = async (pool: Pool, options: SeedOptions): Promise<{ insertedCount: number; cleared: boolean }> => {
   const client = await pool.connect();
 
   try {
@@ -42,7 +27,7 @@ export const seedPostgresProducts = async (
       await client.query("TRUNCATE reviews, product_tags, product_attributes, products RESTART IDENTITY CASCADE");
     }
 
-    const docs = generateSeedProducts(options.count, options.seed);
+    const docs = generateSeedProductsRange(options.count, options.seed, options.startIndex ?? 0);
 
     for (const doc of docs) {
       const productId = randomUUID();
@@ -54,17 +39,7 @@ export const seedPostgresProducts = async (
           )
           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         `,
-        [
-          productId,
-          doc.sku,
-          doc.name,
-          doc.description,
-          doc.price,
-          doc.category,
-          doc.stock,
-          doc.created_at,
-          doc.updated_at
-        ]
+        [productId, doc.sku, doc.name, doc.description, doc.price, doc.category, doc.stock, doc.created_at, doc.updated_at],
       );
 
       for (const [key, value] of Object.entries(doc.attributes)) {
@@ -81,7 +56,7 @@ export const seedPostgresProducts = async (
             INSERT INTO reviews (id, product_id, user_name, rating, comment, date)
             VALUES ($1, $2, $3, $4, $5, $6)
           `,
-          [randomUUID(), productId, review.user, review.rating, review.comment, review.date]
+          [randomUUID(), productId, review.user, review.rating, review.comment, review.date],
         );
       }
     }
@@ -90,7 +65,7 @@ export const seedPostgresProducts = async (
 
     return {
       insertedCount: docs.length,
-      cleared: options.clearExisting
+      cleared: options.clearExisting,
     };
   } catch (error) {
     await client.query("ROLLBACK");

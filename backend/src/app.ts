@@ -32,7 +32,7 @@ export const createApp = (config: AppConfig, logger: Logger) => {
   );
   app.use(express.json({ limit: "1mb" }));
 
-  app.use("/api/v1", createApiRouter());
+  app.use("/api/v1", createApiRouter(config));
 
   app.use(notFoundHandler);
   app.use(createErrorHandler(logger));

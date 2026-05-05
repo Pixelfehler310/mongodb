@@ -1,0 +1,15 @@
+[
+  {
+    "projectId": "mongodb",
+    "projectName": "mongodb",
+    "course": "NoSql",
+    "workspaceFolderUris": [
+      "file:///c%3A/Users/simon/Documents/GitHub/uni/mongodb"
+    ],
+    "tags": [
+      "uni"
+    ],
+    "active": true,
+    "defaultTaskLabel": null
+  }
+]

@@ -4,9 +4,11 @@ import type {
   CreateProductInput,
   CreateProductPayload,
   HealthPayload,
+  PerformancePresetsPayload,
+  PerformanceRunPayload,
   ProductListPayload,
   Product,
-  ReviewPayload
+  ReviewPayload,
 } from "../types";
 import type { DatabaseMode } from "../store/database";
 
@@ -55,9 +57,9 @@ const dbQuery = (db: DatabaseMode): string => `?db=${db}`;
 const request = async <T>(path: string, init?: RequestInit): Promise<T> => {
   const response = await fetch(`${BASE_URL}${path}`, {
     headers: {
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
     },
-    ...init
+    ...init,
   });
 
   const payload = await response.json().catch(() => ({}));
@@ -70,21 +72,20 @@ const request = async <T>(path: string, init?: RequestInit): Promise<T> => {
 };
 
 export const apiClient = {
-  listProducts: (filters: ProductFilterInput) =>
-    request<ProductListPayload>(`/products${toQueryString(filters)}`),
+  listProducts: (filters: ProductFilterInput) => request<ProductListPayload>(`/products${toQueryString(filters)}`),
 
   getProduct: (id: string, db: DatabaseMode) => request<Product>(`/products/${id}${dbQuery(db)}`),
 
   addReview: (id: string, db: DatabaseMode, body: { user: string; rating: number; comment: string }) =>
     request<ReviewPayload>(`/products/${id}/reviews${dbQuery(db)}`, {
       method: "POST",
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
     }),
 
   createProduct: (db: DatabaseMode, body: CreateProductInput) =>
     request<CreateProductPayload>(`/products${dbQuery(db)}`, {
       method: "POST",
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
     }),
 
   getCategories: (db: DatabaseMode) => request<CategoriesPayload>(`/categories${dbQuery(db)}`),
@@ -93,9 +94,17 @@ export const apiClient = {
 
   getHealth: () => request<HealthPayload>("/health"),
 
+  getPerformancePresets: () => request<PerformancePresetsPayload>("/performance/presets"),
+
+  runPerformanceSuite: (body: { duration_seconds: number; concurrency: number; iterations: number; db_modes: DatabaseMode[]; scenario_ids: string[] }) =>
+    request<PerformanceRunPayload>("/performance/run", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
   seedData: (count = 120, db: DatabaseMode | "both" = "both") =>
     request<{ success: boolean; inserted_count: number; cleared: boolean }>(`/seed?db=${db}`, {
       method: "POST",
-      body: JSON.stringify({ count, clear_existing: true })
-    })
+      body: JSON.stringify({ count, clear_existing: true }),
+    }),
 };

@@ -3,6 +3,7 @@ import { AnalyticsPage } from "./pages/AnalyticsPage";
 import { CatalogPage } from "./pages/CatalogPage";
 import { HealthPage } from "./pages/HealthPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
+import { PerformancePage } from "./pages/PerformancePage";
 import { ProductDetailPage } from "./pages/ProductDetailPage";
 import { useDatabaseStore, type DatabaseMode } from "./store/database";
 
@@ -19,9 +20,18 @@ export const App = () => {
         </div>
         <div className="header-actions">
           <nav>
-            <NavLink to="/" className={({ isActive }) => (isActive ? "active" : "")}>Katalog</NavLink>
-            <NavLink to="/analytics" className={({ isActive }) => (isActive ? "active" : "")}>Analytics</NavLink>
-            <NavLink to="/health" className={({ isActive }) => (isActive ? "active" : "")}>DB Health</NavLink>
+            <NavLink to="/" className={({ isActive }) => (isActive ? "active" : "")}>
+              Katalog
+            </NavLink>
+            <NavLink to="/analytics" className={({ isActive }) => (isActive ? "active" : "")}>
+              Analytics
+            </NavLink>
+            <NavLink to="/performance" className={({ isActive }) => (isActive ? "active" : "")}>
+              Performance
+            </NavLink>
+            <NavLink to="/health" className={({ isActive }) => (isActive ? "active" : "")}>
+              DB Health
+            </NavLink>
           </nav>
 
           <label className="db-toggle">
@@ -39,6 +49,7 @@ export const App = () => {
           <Route path="/" element={<CatalogPage />} />
           <Route path="/product/:id" element={<ProductDetailPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
+          <Route path="/performance" element={<PerformancePage />} />
           <Route path="/health" element={<HealthPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

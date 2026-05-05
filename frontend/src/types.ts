@@ -93,3 +93,121 @@ export type HealthPayload = {
   };
   timestamp: string;
 };
+
+export type PerformanceScenarioPreset = {
+  id: string;
+  name: string;
+  description: string;
+  path: string;
+  method: "GET" | "POST";
+  supportsDbMode: boolean;
+  tags: string[];
+};
+
+export type PerformancePresetsPayload = {
+  available_db_modes: Array<"mongo" | "postgres">;
+  defaults: {
+    duration_seconds: number;
+    concurrency: number;
+    iterations: number;
+    db_modes: Array<"mongo" | "postgres">;
+    scenario_ids: string[];
+  };
+  scenarios: PerformanceScenarioPreset[];
+  timestamp: string;
+};
+
+export type PerformanceRunResult = {
+  run_id: string;
+  label: string;
+  scenario_id: string;
+  scenario_name: string;
+  db_mode: "mongo" | "postgres";
+  iteration: number;
+  path: string;
+  url: string;
+  method: string;
+  duration_seconds: number;
+  concurrency: number;
+  requests: number;
+  succeeded: number;
+  failed: number;
+  success_rate: number;
+  requests_per_second: number;
+  latency_ms: {
+    min: number;
+    avg: number;
+    p50: number;
+    p95: number;
+    p99: number;
+    max: number;
+  };
+  status_counts: Record<string, number>;
+  timeline: Array<{
+    second: number;
+    requests: number;
+    succeeded: number;
+    failed: number;
+    avg_latency_ms: number;
+    requests_per_second: number;
+    success_rate: number;
+  }>;
+};
+
+export type PerformanceRunPayload = {
+  success: boolean;
+  plan: {
+    duration_seconds: number;
+    concurrency: number;
+    iterations: number;
+    db_modes: Array<"mongo" | "postgres">;
+    scenario_ids: string[];
+    estimated_total_seconds: number;
+  };
+  started_at: string;
+  completed_at: string;
+  runs: PerformanceRunResult[];
+  analytics: {
+    totals: {
+      total_runs: number;
+      total_requests: number;
+      total_succeeded: number;
+      total_failed: number;
+      avg_requests_per_second: number;
+      avg_p95_latency_ms: number;
+      avg_success_rate: number;
+    };
+    db_comparison: Array<{
+      db_mode: "mongo" | "postgres";
+      runs: number;
+      total_requests: number;
+      avg_requests_per_second: number;
+      avg_p95_latency_ms: number;
+      avg_success_rate: number;
+      best_run_label: string;
+    }>;
+    scenario_comparison: Array<{
+      scenario_id: string;
+      scenario_name: string;
+      db_mode: "mongo" | "postgres";
+      runs: number;
+      avg_requests_per_second: number;
+      avg_p95_latency_ms: number;
+      avg_success_rate: number;
+    }>;
+    db_trends: Array<{
+      db_mode: "mongo" | "postgres";
+      timeline: Array<{
+        second: number;
+        requests_per_second: number;
+        avg_latency_ms: number;
+        success_rate: number;
+      }>;
+    }>;
+    highlights: {
+      fastest_run_label: string | null;
+      lowest_p95_run_label: string | null;
+    };
+  };
+  timestamp: string;
+};

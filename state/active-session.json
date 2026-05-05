@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "sessionId": "2026-05-05T16-31-58-412Z__mongodb",
+  "projectId": "mongodb",
+  "projectName": "mongodb",
+  "course": "NoSql",
+  "workspaceFolderUri": "file:///c%3A/Users/simon/Documents/GitHub/uni/mongodb",
+  "startedAt": "2026-05-05T16:31:58.412Z",
+  "lastActivityAt": "2026-05-05T16:32:09.612Z",
+  "lastObservedAt": "2026-05-05T16:32:09.612Z",
+  "status": "tracking",
+  "source": "auto-vscode",
+  "activeMs": 11200,
+  "continuationMs": 0,
+  "awayMs": 0,
+  "contextSwitchCount": 0,
+  "activity": {
+    "editEvents": 28,
+    "saveEvents": 0,
+    "editorSwitches": 0,
+    "selectionEvents": 0,
+    "languages": [
+      "scminput"
+    ]
+  },
+  "annotation": {
+    "taskLabel": null,
+    "note": ""
+  },
+  "machine": {
+    "platform": "win32",
+    "hostname": "Monstermaschine"
+  },
+  "handoffCandidate": null
+}

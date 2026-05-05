@@ -64,6 +64,20 @@ export const useHealthQuery = () => {
   });
 };
 
+export const usePerformancePresetsQuery = () => {
+  return useQuery({
+    queryKey: ["performance-presets"],
+    queryFn: () => apiClient.getPerformancePresets(),
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
+export const useRunPerformanceMutation = () => {
+  return useMutation({
+    mutationFn: (body: { duration_seconds: number; concurrency: number; iterations: number; db_modes: Array<"mongo" | "postgres">; scenario_ids: string[] }) => apiClient.runPerformanceSuite(body),
+  });
+};
+
 export const useAddReviewMutation = (productId: string) => {
   const queryClient = useQueryClient();
   const dbMode = useDatabaseStore((state) => state.mode);
