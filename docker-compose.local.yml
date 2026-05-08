@@ -70,6 +70,60 @@ services:
     ports:
       - "4173:4173"
 
+  influxdb:
+    image: influxdb:1.12.4
+    container_name: mongodb-showcase-influxdb-local
+    environment:
+      INFLUXDB_DB: k6
+      INFLUXDB_REPORTING_DISABLED: "true"
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb_data:/var/lib/influxdb
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8086/ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 10s
+
+  grafana:
+    image: grafana/grafana-oss:11.5.2
+    container_name: mongodb-showcase-grafana-local
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_USERS_DEFAULT_THEME: light
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/k6-live-overview.json
+    depends_on:
+      influxdb:
+        condition: service_healthy
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+
+  benchmark:
+    image: grafana/k6:0.49.0
+    profiles: ["benchmark"]
+    environment:
+      K6_API_BASE_URL: http://backend:3000/api/v1
+    volumes:
+      - ./benchmark:/scripts:ro
+      - ./benchmark/results:/results
+    depends_on:
+      backend:
+        condition: service_healthy
+      influxdb:
+        condition: service_healthy
+    entrypoint: ["k6"]
+
 volumes:
   mongo_data:
   postgres_data:
+  influxdb_data:
+  grafana_data:

@@ -29,9 +29,9 @@ export const seedInputSchema = z
   .optional();
 
 export const performanceRunInputSchema = z.object({
-  duration_seconds: z.number().int().min(3).max(20).default(6),
+  duration_seconds: z.number().int().min(3).max(20).default(10),
   concurrency: z.number().int().min(1).max(100).default(20),
-  iterations: z.number().int().min(1).max(3).default(1),
+  iterations: z.number().int().min(1).max(3).default(3),
   db_modes: z.array(databaseModeSchema).min(1).max(2).default(["mongo", "postgres"]),
   scenario_ids: z.array(z.string().trim().min(1)).min(1).max(8).default([]),
 });

@@ -8,9 +8,20 @@ export type PerformanceScenarioPreset = {
   method: "GET" | "POST";
   supportsDbMode: boolean;
   tags: string[];
+  setup?: "reference-product";
 };
 
 export const performanceScenarioPresets: PerformanceScenarioPreset[] = [
+  {
+    id: "point-read",
+    name: "Point Read",
+    description: "Single product detail lookup with tags, attributes and embedded review data.",
+    path: "/products/:id",
+    method: "GET",
+    supportsDbMode: true,
+    tags: ["detail", "point-read"],
+    setup: "reference-product",
+  },
   {
     id: "catalog-overview",
     name: "Catalog Overview",
@@ -48,6 +59,15 @@ export const performanceScenarioPresets: PerformanceScenarioPreset[] = [
     tags: ["search", "text"],
   },
   {
+    id: "bulk-read",
+    name: "Bulk Read",
+    description: "Large page read to compare throughput for high-volume product retrieval.",
+    path: "/products?limit=100&sort=-created_at",
+    method: "GET",
+    supportsDbMode: true,
+    tags: ["listing", "bulk-read"],
+  },
+  {
     id: "analytics-rollup",
     name: "Analytics Rollup",
     description: "Analytical aggregation endpoint for category and rating insights.",
@@ -72,4 +92,4 @@ export const getDefaultPerformanceDbModes = (availableDbModes: DatabaseMode[]): 
   return [availableDbModes[0]];
 };
 
-export const defaultPerformanceScenarioIds = ["catalog-overview", "text-search", "analytics-rollup"];
+export const defaultPerformanceScenarioIds = performanceScenarioPresets.map((scenario) => scenario.id);

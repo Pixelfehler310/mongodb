@@ -12,7 +12,7 @@ Dieses Projekt vergleicht MongoDB als dokumentenorientierte NoSQL-Datenbank mit 
 
 - Backend: Express + TypeScript + nativer MongoDB Node.js Driver + PostgreSQL `pg` Pool
 - Frontend: React + Vite + TypeScript + React Query + Zustand
-- Infrastruktur: Docker Compose (lokal), MongoDB Atlas (Cloud), lokaler MongoDB-Container und lokaler PostgreSQL-Container
+- Infrastruktur: Docker Compose (lokal), MongoDB Atlas (Cloud), lokaler MongoDB-Container, lokaler PostgreSQL-Container, InfluxDB und Grafana fuer Benchmark-Visualisierung
 
 ## API (v1)
 
@@ -39,7 +39,9 @@ Beide Setups starten Backend, Frontend und PostgreSQL. Das lokale Setup startet 
 
 - Docker Desktop laeuft
 - Port `3000` (Backend) ist frei
+- Port `3001` (Grafana) ist frei
 - Port `4173` (Frontend) ist frei
+- Port `8086` (InfluxDB) ist frei
 - Fuer lokales Mongo optional: Port `27017` ist frei (nur falls Host-Zugriff gewuenscht)
 - Fuer lokales PostgreSQL optional: Port `5432` ist frei (nur falls Host-Zugriff gewuenscht)
 
@@ -112,6 +114,8 @@ Was dabei passiert:
 - `postgres` startet aus `postgres:16` und speichert Daten in einem Docker Volume (`postgres_data`).
 - `backend` wartet auf Mongo- und PostgreSQL-Healthchecks.
 - `frontend` wartet auf den Backend-Healthcheck.
+- `influxdb` speichert die Live-Metriken der k6-Runs.
+- `grafana` visualisiert die k6-Runs live unter `http://localhost:3001`.
 
 ### 3) Verifizieren
 
@@ -182,6 +186,98 @@ Sinnvolle Testfaelle fuer den Vergleich:
 - Produktliste mit `category`, `price_*` und `attributes.*`
 - Textsuche mit `search=laptop`
 - `GET /api/v1/analytics?db=mongo` gegen `?db=postgres`
+
+### 4c) Vollstaendige k6-Performanceanalyse
+
+Fuer die eigentliche Auswertung aus dem Umsetzungskonzept gibt es jetzt einen reproduzierbaren k6-Flow unter `benchmark/`.
+
+Vorbereitung:
+
+1. Lokalen Stack starten:
+
+```bash
+npm run docker:local:up
+```
+
+2. Fuer belastbare Lese- und Analyse-Benchmarks einen groesseren, identischen Datensatz in beide Datenbanken schreiben:
+
+```bash
+npm run docker:local:seed:bulk -- --db both --total 10000 --batch-size 2000 --seed 20260503
+```
+
+3. Einzelnes k6-Szenario ausfuehren, zum Beispiel Produktdetails gegen MongoDB:
+
+```bash
+npm run benchmark:local:scenario -- --scenario read-product --db mongo --vus 50 --warmup 30 --duration 60
+```
+
+4. Gesamte Suite gegen beide Datenbanken fahren:
+
+```bash
+npm run benchmark:local:suite -- --db both --vus 50 --warmup 30 --duration 60 --seed-count 10000
+```
+
+Die Ergebnisse landen unter `benchmark/results/<timestamp>/`:
+
+- ein JSON pro Run mit den exportierten k6-Metriken
+- `suite-summary.json` mit verdichteten Kennzahlen fuer alle Szenarien
+- jeder Run und jede Suite liefern zusaetzlich eine `grafana_url` fuer die Live- bzw. Nachansicht
+
+Implementierte Szenarien:
+
+- `read-product`: Produktdetail mit Reviews, Tags und Attributen
+- `catalog-search`: Katalogabfrage mit Kategorie-, Attribut- und Textfilter
+- `analytics-rollup`: Aggregations-Endpunkt fuer Kategorien und Ratings
+- `bulk-insert`: API-basierter Bulk-Insert mit `POST /api/v1/seed?db=<mode>`
+
+Wichtige Hinweise:
+
+- `bulk-insert` ist destruktiv, weil der Seed-Endpunkt bestehende Produktdaten ersetzt.
+- Atlas ist bewusst nicht Teil dieses Benchmark-Flows. Die Performanceanalyse laeuft nur ueber `docker-compose.local.yml`.
+- Der Frontend-Performance-Tab bleibt als schneller In-App-Labortest erhalten. Fuer die eigentliche Ausarbeitung und reproduzierbare Zahlen ist k6 der massgebliche Pfad.
+
+### 4d) Live-Visualisierung der k6-Runs mit Grafana
+
+Der lokale Compose-Stack startet jetzt automatisch auch InfluxDB und Grafana. Dadurch koennen echte k6-Runs waehrend der Ausfuehrung live visualisiert werden.
+
+Wichtige URLs:
+
+- Grafana Dashboard: `http://localhost:3001`
+- InfluxDB HTTP API: `http://localhost:8086`
+
+Ablauf:
+
+1. Lokalen Stack starten:
+
+```bash
+npm run docker:local:up
+```
+
+2. Optional groesseren Datensatz in beide Datenbanken schreiben:
+
+```bash
+npm run docker:local:seed:bulk -- both 10000
+```
+
+3. Benchmark starten, zum Beispiel ein einzelnes Szenario:
+
+```bash
+npm run benchmark:local:scenario -- read-product mongo grafana-demo 10 10 15 1000
+```
+
+Oder die gesamte Suite:
+
+```bash
+npm run benchmark:local:suite -- --db both --vus 50 --warmup 30 --duration 60 --seed-count 10000
+```
+
+4. Das Grafana-Dashboard oeffnen und nach `suite_id`, `scenario`, `db_mode` und `run_id` filtern.
+
+Hinweise zur Visualisierung:
+
+- Das Dashboard ist als provisioniertes Standard-Dashboard unter `K6 Benchmarks / K6 Live Overview` hinterlegt.
+- Grafana ist lokal anonym lesbar konfiguriert, damit die Demo ohne Login funktioniert.
+- Die CLI-Ausgabe der Benchmark-Runner enthaelt zusaetzlich eine `grafana_url`, die direkt auf die passende Suite bzw. den passenden Run zeigt.
 
 ### 5) Stoppen / Reset
 

@@ -5,6 +5,7 @@ import type {
   CreateProductPayload,
   HealthPayload,
   PerformancePresetsPayload,
+  PerformanceRunRequest,
   PerformanceRunPayload,
   ProductListPayload,
   Product,
@@ -54,6 +55,18 @@ const toQueryString = (filters: ProductFilterInput): string => {
 
 const dbQuery = (db: DatabaseMode): string => `?db=${db}`;
 
+const toPerformanceStreamQuery = (body: PerformanceRunRequest): string => {
+  const params = new URLSearchParams();
+
+  params.set("duration_seconds", String(body.duration_seconds));
+  params.set("concurrency", String(body.concurrency));
+  params.set("iterations", String(body.iterations));
+  params.set("db_modes", body.db_modes.join(","));
+  params.set("scenario_ids", body.scenario_ids.join(","));
+
+  return params.toString();
+};
+
 const request = async <T>(path: string, init?: RequestInit): Promise<T> => {
   const response = await fetch(`${BASE_URL}${path}`, {
     headers: {
@@ -96,11 +109,13 @@ export const apiClient = {
 
   getPerformancePresets: () => request<PerformancePresetsPayload>("/performance/presets"),
 
-  runPerformanceSuite: (body: { duration_seconds: number; concurrency: number; iterations: number; db_modes: DatabaseMode[]; scenario_ids: string[] }) =>
+  runPerformanceSuite: (body: PerformanceRunRequest) =>
     request<PerformanceRunPayload>("/performance/run", {
       method: "POST",
       body: JSON.stringify(body),
     }),
+
+  getPerformanceStreamUrl: (body: PerformanceRunRequest) => `${BASE_URL}/performance/stream?${toPerformanceStreamQuery(body)}`,
 
   seedData: (count = 120, db: DatabaseMode | "both" = "both") =>
     request<{ success: boolean; inserted_count: number; cleared: boolean }>(`/seed?db=${db}`, {

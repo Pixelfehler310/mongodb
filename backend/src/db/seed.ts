@@ -29,6 +29,8 @@ const createRandom = (seed: number) => {
 
 type RandomFn = ReturnType<typeof createRandom>;
 
+const createRandomForIndex = (seed: number, index: number): RandomFn => createRandom((seed ^ Math.imul(index + 1, 0x9e3779b1)) >>> 0);
+
 const pick = <T>(list: readonly T[], random: RandomFn): T => list[Math.floor(random() * list.length)];
 
 const randomInt = (min: number, max: number, random: RandomFn): number => Math.floor(random() * (max - min + 1)) + min;
@@ -108,7 +110,8 @@ const makeAttributes = (category: string, random: RandomFn): Record<string, stri
   }
 };
 
-const makeDocument = (index: number, random: RandomFn): SeedProductDoc => {
+const makeDocument = (index: number, seed: number): SeedProductDoc => {
+  const random = createRandomForIndex(seed, index);
   const category = pick(categories, random);
   const now = new Date(baseDate.getTime() - index * 60 * 1000);
   const name = `${category} Showcase Item ${index + 1}`;
@@ -129,15 +132,9 @@ const makeDocument = (index: number, random: RandomFn): SeedProductDoc => {
   };
 };
 
-export const generateSeedProducts = (count: number, seed = defaultSeed): SeedProductDoc[] => {
-  const random = createRandom(seed);
-  return Array.from({ length: count }, (_, i) => makeDocument(i, random));
-};
+export const generateSeedProducts = (count: number, seed = defaultSeed): SeedProductDoc[] => Array.from({ length: count }, (_, i) => makeDocument(i, seed));
 
-export const generateSeedProductsRange = (count: number, seed = defaultSeed, startIndex = 0): SeedProductDoc[] => {
-  const random = createRandom(seed);
-  return Array.from({ length: count }, (_, i) => makeDocument(startIndex + i, random));
-};
+export const generateSeedProductsRange = (count: number, seed = defaultSeed, startIndex = 0): SeedProductDoc[] => Array.from({ length: count }, (_, i) => makeDocument(startIndex + i, seed));
 
 export const seedProducts = async (db: Db, options: SeedOptions): Promise<{ insertedCount: number; cleared: boolean }> => {
   const collection = db.collection<Omit<ProductDoc, "_id">>("products");

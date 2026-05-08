@@ -154,16 +154,26 @@ export type PerformanceRunResult = {
   }>;
 };
 
+export type PerformanceRunRequest = {
+  duration_seconds: number;
+  concurrency: number;
+  iterations: number;
+  db_modes: Array<"mongo" | "postgres">;
+  scenario_ids: string[];
+};
+
+export type PerformancePlan = {
+  duration_seconds: number;
+  concurrency: number;
+  iterations: number;
+  db_modes: Array<"mongo" | "postgres">;
+  scenario_ids: string[];
+  estimated_total_seconds: number;
+};
+
 export type PerformanceRunPayload = {
   success: boolean;
-  plan: {
-    duration_seconds: number;
-    concurrency: number;
-    iterations: number;
-    db_modes: Array<"mongo" | "postgres">;
-    scenario_ids: string[];
-    estimated_total_seconds: number;
-  };
+  plan: PerformancePlan;
   started_at: string;
   completed_at: string;
   runs: PerformanceRunResult[];
@@ -211,3 +221,55 @@ export type PerformanceRunPayload = {
   };
   timestamp: string;
 };
+
+type PerformanceStreamEnvelope = {
+  success: boolean;
+  plan: PerformancePlan;
+  timestamp: string;
+};
+
+export type PerformanceSuiteStartedEvent = PerformanceStreamEnvelope & {
+  type: "suite-started";
+  total_runs: number;
+  started_at: string;
+};
+
+export type PerformanceRunStartedEvent = PerformanceStreamEnvelope & {
+  type: "run-started";
+  total_runs: number;
+  completed_runs: number;
+  pending_runs: number;
+  scenario_id: string;
+  scenario_name: string;
+  db_mode: "mongo" | "postgres";
+  iteration: number;
+  started_at: string;
+  label: string;
+};
+
+export type PerformanceRunCompletedEvent = PerformanceStreamEnvelope & {
+  type: "run-completed";
+  total_runs: number;
+  completed_runs: number;
+  pending_runs: number;
+  started_at: string;
+  completed_at: string;
+  run: PerformanceRunResult;
+  analytics: PerformanceRunPayload["analytics"];
+};
+
+export type PerformanceSuiteCompletedEvent = PerformanceStreamEnvelope & {
+  type: "suite-completed";
+  total_runs: number;
+  completed_runs: number;
+  pending_runs: number;
+  started_at: string;
+  completed_at: string;
+  suite: Omit<PerformanceRunPayload, "success" | "plan" | "timestamp">;
+};
+
+export type PerformanceStreamEvent =
+  | PerformanceSuiteStartedEvent
+  | PerformanceRunStartedEvent
+  | PerformanceRunCompletedEvent
+  | PerformanceSuiteCompletedEvent;

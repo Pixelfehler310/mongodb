@@ -7,6 +7,10 @@
         "docker:local:down": "docker compose --env-file .env.local -f docker-compose.local.yml down",
         "docker:local:reset": "docker compose --env-file .env.local -f docker-compose.local.yml down -v",
         "docker:local:logs": "docker compose --env-file .env.local -f docker-compose.local.yml logs -f",
-        "docker:local:config": "docker compose --env-file .env.local -f docker-compose.local.yml config"
+        "docker:local:config": "docker compose --env-file .env.local -f docker-compose.local.yml config",
+        "docker:local:seed:bulk": "node benchmark/run-bulk-seed.mjs",
+        "docker:local:perf:http": "node benchmark/run-http-perf.mjs",
+        "benchmark:local:scenario": "node benchmark/run-k6-scenario.mjs",
+        "benchmark:local:suite": "node benchmark/run-suite.mjs"
     }
 }

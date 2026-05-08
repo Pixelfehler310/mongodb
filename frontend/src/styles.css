@@ -539,6 +539,114 @@ button:hover {
   gap: 16px;
 }
 
+.methodology-card {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 14px;
+}
+
+.methodology-card.compact-card {
+  grid-template-columns: 1fr;
+}
+
+.methodology-copy {
+  display: grid;
+  gap: 12px;
+}
+
+.methodology-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.methodology-actions button {
+  width: auto;
+}
+
+.methodology-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 148px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.methodology-badge.good {
+  background: #d8fbe8;
+  color: #0b5e34;
+}
+
+.methodology-badge.warning {
+  background: #fff3d6;
+  color: #7a5400;
+}
+
+.methodology-badge.poor {
+  background: #fde3e1;
+  color: #84201a;
+}
+
+.methodology-checklist {
+  display: grid;
+  gap: 10px;
+}
+
+.methodology-check {
+  border: 1px solid var(--border);
+  border-left-width: 4px;
+  border-radius: 12px;
+  padding: 12px;
+  background: #fbfefb;
+}
+
+.methodology-check.passed {
+  border-left-color: var(--accent-strong);
+}
+
+.methodology-check.failed {
+  border-left-color: #d7a31f;
+}
+
+.methodology-check div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.methodology-check span,
+.methodology-check p {
+  color: var(--muted);
+}
+
+.methodology-check p {
+  margin: 8px 0 0;
+}
+
+.config-note {
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  background: #f8fcf9;
+}
+
+.config-note strong,
+.config-note p {
+  display: block;
+}
+
+.config-note p {
+  margin: 8px 0 0;
+  color: var(--muted);
+}
+
 .performance-config {
   display: grid;
   gap: 14px;
@@ -631,6 +739,150 @@ button:hover {
   gap: 14px;
 }
 
+.performance-results-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: end;
+}
+
+.performance-results-head h3 {
+  margin: 6px 0 0;
+}
+
+.performance-live-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 12px;
+}
+
+.live-progress-card,
+.live-log-card {
+  display: grid;
+  gap: 14px;
+}
+
+.live-summary-grid {
+  grid-template-columns: repeat(4, minmax(120px, 1fr));
+}
+
+.live-stat-card {
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+.live-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 96px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.live-status.idle,
+.live-status.connecting {
+  background: #edf4ff;
+  color: #19467a;
+}
+
+.live-status.running {
+  background: #d8fbe8;
+  color: #0b5e34;
+}
+
+.live-status.completed {
+  background: #effaf2;
+  color: #0b5e34;
+}
+
+.live-status.error {
+  background: #fde3e1;
+  color: #84201a;
+}
+
+.live-progress-bar {
+  width: 100%;
+  height: 14px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #e7f3ea 0%, #edf4ff 100%);
+  overflow: hidden;
+}
+
+.live-progress-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent) 0%, #53b6ff 100%);
+  transition: width 220ms ease;
+}
+
+.live-progress-copy {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  color: var(--muted);
+}
+
+.live-progress-copy strong {
+  color: var(--ink);
+}
+
+.live-log-list {
+  display: grid;
+  gap: 10px;
+  max-height: 320px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.live-log-item {
+  border: 1px solid var(--border);
+  border-left-width: 4px;
+  border-radius: 12px;
+  padding: 12px;
+  background: #fbfefb;
+}
+
+.live-log-item.info {
+  border-left-color: #7ab6ff;
+}
+
+.live-log-item.running {
+  border-left-color: var(--accent);
+}
+
+.live-log-item.success {
+  border-left-color: #0b5e34;
+}
+
+.live-log-item.error {
+  border-left-color: var(--error);
+}
+
+.live-log-item div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: baseline;
+}
+
+.live-log-item span,
+.live-log-item p {
+  color: var(--muted);
+}
+
+.live-log-item p {
+  margin: 8px 0 0;
+}
+
 .empty-state {
   min-height: 220px;
   display: grid;
@@ -696,6 +948,7 @@ button:hover {
 }
 
 .performance-table td small {
+  display: block;
   color: var(--muted);
 }
 
@@ -714,8 +967,10 @@ button:hover {
   .page-grid,
   .detail-layout,
   .charts-row,
+  .methodology-card,
   .performance-shell,
-  .performance-chart-grid {
+  .performance-chart-grid,
+  .performance-live-grid {
     grid-template-columns: 1fr;
   }
 
@@ -746,6 +1001,12 @@ button:hover {
   }
 
   .performance-hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .performance-results-head,
+  .live-progress-copy {
     flex-direction: column;
     align-items: flex-start;
   }

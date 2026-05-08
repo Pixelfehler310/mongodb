@@ -115,7 +115,46 @@ type RunPerformanceSuiteOptions = {
   iterations: number;
   durationSeconds: number;
   concurrency: number;
+  onProgress?: (event: PerformanceSuiteProgressEvent) => void;
 };
+
+export type PerformanceSuiteProgressEvent =
+  | {
+      type: "suite-started";
+      total_runs: number;
+      started_at: string;
+    }
+  | {
+      type: "run-started";
+      total_runs: number;
+      completed_runs: number;
+      pending_runs: number;
+      scenario_id: string;
+      scenario_name: string;
+      db_mode: DatabaseMode;
+      iteration: number;
+      started_at: string;
+      label: string;
+    }
+  | {
+      type: "run-completed";
+      total_runs: number;
+      completed_runs: number;
+      pending_runs: number;
+      started_at: string;
+      completed_at: string;
+      run: PerformanceRunResult;
+      analytics: PerformanceAnalytics;
+    }
+  | {
+      type: "suite-completed";
+      total_runs: number;
+      completed_runs: number;
+      pending_runs: number;
+      started_at: string;
+      completed_at: string;
+      suite: PerformanceSuiteResult;
+    };
 
 const percentile = (sorted: number[], fraction: number): number => {
   if (sorted.length === 0) {
@@ -126,14 +165,50 @@ const percentile = (sorted: number[], fraction: number): number => {
   return sorted[index];
 };
 
-const buildUrl = (baseUrl: string, scenario: PerformanceScenarioPreset, dbMode: DatabaseMode): string => {
-  const url = `${baseUrl}${scenario.path}`;
-
-  if (!scenario.supportsDbMode) {
-    return url;
+const appendDbMode = (path: string, dbMode: DatabaseMode, supportsDbMode: boolean): string => {
+  if (!supportsDbMode) {
+    return path;
   }
 
-  return `${url}${url.includes("?") ? "&" : "?"}db=${dbMode}`;
+  return `${path}${path.includes("?") ? "&" : "?"}db=${dbMode}`;
+};
+
+const fetchReferenceProductId = async (baseUrl: string, dbMode: DatabaseMode): Promise<string> => {
+  const response = await fetch(`${baseUrl}${appendDbMode("/products?limit=1&sort=-created_at", dbMode, true)}`, {
+    method: "GET",
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to resolve reference product for ${dbMode}`);
+  }
+
+  const payload = (await response.json()) as {
+    data?: Array<{
+      _id?: string;
+    }>;
+  };
+  const productId = payload.data?.[0]?._id;
+
+  if (!productId) {
+    throw new Error(`No reference product available for ${dbMode}; seed data before running point-read`);
+  }
+
+  return productId;
+};
+
+const resolveScenarioPath = async (baseUrl: string, scenario: PerformanceScenarioPreset, dbMode: DatabaseMode): Promise<string> => {
+  if (scenario.setup === "reference-product") {
+    const productId = await fetchReferenceProductId(baseUrl, dbMode);
+    return appendDbMode(scenario.path.replace(":id", productId), dbMode, scenario.supportsDbMode);
+  }
+
+  return appendDbMode(scenario.path, dbMode, scenario.supportsDbMode);
+};
+
+const buildUrl = (baseUrl: string, resolvedPath: string): string => {
+  const url = `${baseUrl}${resolvedPath}`;
+
+  return url;
 };
 
 const toFixedNumber = (value: number): number => Number(value.toFixed(2));
@@ -273,7 +348,8 @@ const summarizeRuns = (runs: PerformanceRunResult[]): PerformanceAnalytics => {
 };
 
 export const runPerformanceScenario = async (options: RunPerformanceScenarioOptions): Promise<PerformanceRunResult> => {
-  const url = buildUrl(options.baseUrl, options.scenario, options.dbMode);
+  const resolvedPath = await resolveScenarioPath(options.baseUrl, options.scenario, options.dbMode);
+  const url = buildUrl(options.baseUrl, resolvedPath);
   const runStartedAt = performance.now();
   const deadline = runStartedAt + options.durationSeconds * 1000;
   const samples: Sample[] = [];
@@ -323,7 +399,7 @@ export const runPerformanceScenario = async (options: RunPerformanceScenarioOpti
     scenario_name: options.scenario.name,
     db_mode: options.dbMode,
     iteration: options.iteration,
-    path: options.scenario.path,
+    path: resolvedPath,
     url,
     method: options.scenario.method,
     duration_seconds: options.durationSeconds,
@@ -349,28 +425,71 @@ export const runPerformanceScenario = async (options: RunPerformanceScenarioOpti
 export const runPerformanceSuite = async (options: RunPerformanceSuiteOptions): Promise<PerformanceSuiteResult> => {
   const startedAt = new Date().toISOString();
   const runs: PerformanceRunResult[] = [];
+  const totalRuns = options.iterations * options.scenarios.length * options.dbModes.length;
+
+  options.onProgress?.({
+    type: "suite-started",
+    total_runs: totalRuns,
+    started_at: startedAt,
+  });
 
   for (let iteration = 1; iteration <= options.iterations; iteration += 1) {
     for (const scenario of options.scenarios) {
       for (const dbMode of options.dbModes) {
-        runs.push(
-          await runPerformanceScenario({
-            baseUrl: options.baseUrl,
-            scenario,
-            dbMode,
-            iteration,
-            durationSeconds: options.durationSeconds,
-            concurrency: options.concurrency,
-          }),
-        );
+        options.onProgress?.({
+          type: "run-started",
+          total_runs: totalRuns,
+          completed_runs: runs.length,
+          pending_runs: Math.max(totalRuns - runs.length, 0),
+          scenario_id: scenario.id,
+          scenario_name: scenario.name,
+          db_mode: dbMode,
+          iteration,
+          started_at: new Date().toISOString(),
+          label: `${scenario.name} / ${dbMode.toUpperCase()} / Run ${iteration}`,
+        });
+
+        const run = await runPerformanceScenario({
+          baseUrl: options.baseUrl,
+          scenario,
+          dbMode,
+          iteration,
+          durationSeconds: options.durationSeconds,
+          concurrency: options.concurrency,
+        });
+
+        runs.push(run);
+
+        options.onProgress?.({
+          type: "run-completed",
+          total_runs: totalRuns,
+          completed_runs: runs.length,
+          pending_runs: Math.max(totalRuns - runs.length, 0),
+          started_at: startedAt,
+          completed_at: new Date().toISOString(),
+          run,
+          analytics: summarizeRuns(runs),
+        });
       }
     }
   }
 
-  return {
+  const suite = {
     started_at: startedAt,
     completed_at: new Date().toISOString(),
     runs,
     analytics: summarizeRuns(runs),
   };
+
+  options.onProgress?.({
+    type: "suite-completed",
+    total_runs: totalRuns,
+    completed_runs: runs.length,
+    pending_runs: Math.max(totalRuns - runs.length, 0),
+    started_at: startedAt,
+    completed_at: suite.completed_at,
+    suite,
+  });
+
+  return suite;
 };
